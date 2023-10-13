@@ -168,4 +168,10 @@ public class Shader {
         use();
         glUniform1f(varLocation, slot);
     }
+
+    public void uploadIntArray(String varName, int[] array) {
+        int varLocation = glGetUniformLocation(shaderProgramID, varName);
+        use();
+        glUniform1iv(varLocation, array); // v stands for value so it can take an entire array
+    }
 }
