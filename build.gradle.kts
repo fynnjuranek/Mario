@@ -7,6 +7,7 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+
 }
 
 dependencies {
@@ -21,8 +22,18 @@ tasks.test {
 val lwjglVersion = "3.2.3"
 val jomlVersion = "1.10.5"
 val lwjglNatives = "natives-windows"
+var imguiVersion = "1.86.11"
 
 dependencies {
+
+    // IMGUI stuff
+    implementation("io.github.spair:imgui-java-app:${imguiVersion}")
+    implementation("io.github.spair:imgui-java-binding:$imguiVersion")
+    implementation("io.github.spair:imgui-java-lwjgl3:$imguiVersion")
+    implementation("io.github.spair:imgui-java-natives-windows:$imguiVersion")
+
+
+    // LWJGL stuff
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
 
     implementation("org.lwjgl", "lwjgl")
