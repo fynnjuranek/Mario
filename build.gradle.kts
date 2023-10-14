@@ -36,6 +36,9 @@ dependencies {
     // LWJGL stuff
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
 
+    // GSON
+    implementation("com.google.code.gson:gson:2.10.1")
+
     implementation("org.lwjgl", "lwjgl")
     implementation("org.lwjgl", "lwjgl-assimp")
     implementation("org.lwjgl", "lwjgl-glfw")
