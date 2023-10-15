@@ -1,15 +1,16 @@
-package jade;
+package scenes;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import components.RigidBody;
-import components.Sprite;
-import components.SpriteRenderer;
-import components.SpriteSheet;
+import components.*;
 import imgui.ImGui;
 import imgui.ImVec2;
+import jade.*;
 import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
+import renderer.DebugDraw;
+import scenes.Scene;
 import util.AssetPool;
 
 public class LevelEditorScene extends Scene {
@@ -20,56 +21,59 @@ public class LevelEditorScene extends Scene {
     private float spriteFlipTimeLeft = 0.0f;
     private SpriteSheet sprites;
 
+    GameObject levelEditorStuff = new GameObject("LevelEditor", new Transform(new Vector2f()), 0);
     public LevelEditorScene() {
 
     }
 
     @Override
     public void init() {
+        levelEditorStuff.addComponent(new MouseControls());
+        levelEditorStuff.addComponent(new GridLines());
         loadResources();
         this.camera = new Camera(new Vector2f(-250, 0));
         sprites = AssetPool.getSpriteSheet("assets/images/spritesheets/decorationsAndBlocks.png");
+
         if (levelLoaded) {
             this.activeGameObject = gameObjects.get(0);
             return;
         }
 
-        obj1 = new GameObject("Object 1",
-                new Transform(new Vector2f(200, 100), new Vector2f(256, 256)), 2);
+//        To test alpha blending
+//        obj1 = new GameObject("Object 1",
+//                new Transform(new Vector2f(200, 100), new Vector2f(256, 256)), 2);
+//
+//        SpriteRenderer obj1Sprite = new SpriteRenderer();
+//        obj1Sprite.setColor(new Vector4f(1, 0, 0, 1));
+//        obj1.addComponent(obj1Sprite);
+//        obj1.addComponent(new RigidBody());
+//
+//        this.addGameObjectToScene(obj1);
+//        this.activeGameObject = obj1;
+//
+//        GameObject obj2 = new GameObject("Object 2",
+//                new Transform(new Vector2f(400, 100), new Vector2f(256, 256)), 3);
+//        SpriteRenderer obj2SpriteRenderer = new SpriteRenderer();
+//        Sprite obj2Sprite = new Sprite();
+//        obj2Sprite.setTexture(AssetPool.getTexture("assets/images/blendImage2.png"));
+//        obj2SpriteRenderer.setSprite(obj2Sprite);
+//        obj2.addComponent(obj2SpriteRenderer);
+//        this.addGameObjectToScene(obj2);
 
-        SpriteRenderer obj1Sprite = new SpriteRenderer();
-        obj1Sprite.setColor(new Vector4f(1, 0, 0, 1));
-        obj1.addComponent(obj1Sprite);
-        obj1.addComponent(new RigidBody());
 
-        this.addGameObjectToScene(obj1);
-        this.activeGameObject = obj1;
-
-        GameObject obj2 = new GameObject("Object 2",
-                new Transform(new Vector2f(400, 100), new Vector2f(256, 256)), 3);
-        SpriteRenderer obj2SpriteRenderer = new SpriteRenderer();
-        Sprite obj2Sprite = new Sprite();
-        obj2Sprite.setTexture(AssetPool.getTexture("assets/images/blendImage2.png"));
-        obj2SpriteRenderer.setSprite(obj2Sprite);
-        obj2.addComponent(obj2SpriteRenderer);
-        this.addGameObjectToScene(obj2);
-
-        Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .registerTypeAdapter(Component.class, new ComponentDeserializer())
-                .registerTypeAdapter(GameObject.class, new GameObjectDeserializer())
-                .create();
-
-        String serialized = gson.toJson(obj1);
-        System.out.println(serialized);
-        GameObject obj = gson.fromJson(serialized, GameObject.class);
-        System.out.println(obj);
     }
 
 
-
+//    float t = 0.0f;
     @Override
     public void update(float dt) {
+        levelEditorStuff.update(dt);
+//        To render spinning line
+//        float x = ((float) Math.sin(t) * 200.0f) + 600;
+//        float y = ((float) Math.cos(t) * 200.0f) + 400;
+//        t += 0.05f;
+//        DebugDraw.addLine2D(new Vector2f(600, 400), new Vector2f(x, y), new Vector3f(1, 0, 0), 10);
+
         for (GameObject go : this.gameObjects) {
             go.update(dt);
         }
@@ -97,8 +101,10 @@ public class LevelEditorScene extends Scene {
             Vector2f[] texCoords = sprite.getTexCoords();
 
             ImGui.pushID(i);
-            if (ImGui.imageButton(id, spriteWidth, spriteHeight, texCoords[0].x, texCoords[0].y, texCoords[2].x, texCoords[2].y)) {
-                System.out.println("Button " + i + "clicked");
+            if (ImGui.imageButton(id, spriteWidth, spriteHeight, texCoords[2].x, texCoords[0].y, texCoords[0].x, texCoords[2].y)) {
+                GameObject object = Prefabs.generateSpriteObject(sprite, 32, 32);
+                // Attach this to the mouse cursor
+                levelEditorStuff.getComponent(MouseControls.class).pickUpObject(object);
             }
             ImGui.popID();
 
