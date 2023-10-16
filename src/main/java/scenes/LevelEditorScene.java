@@ -28,18 +28,12 @@ public class LevelEditorScene extends Scene {
 
     @Override
     public void init() {
+        this.camera = new Camera(new Vector2f(-250, 0));
         levelEditorStuff.addComponent(new MouseControls());
         levelEditorStuff.addComponent(new GridLines());
+        levelEditorStuff.addComponent(new EditorCamera(this.camera));
         loadResources();
-        this.camera = new Camera(new Vector2f(-250, 0));
         sprites = AssetPool.getSpriteSheet("assets/images/spritesheets/decorationsAndBlocks.png");
-
-        if (levelLoaded) {
-            if (!gameObjects.isEmpty()) {
-                this.activeGameObject = gameObjects.get(0);
-            }
-            return;
-        }
 
 //        To test alpha blending
 //        obj1 = new GameObject("Object 1",
@@ -73,6 +67,11 @@ public class LevelEditorScene extends Scene {
     @Override
     public void update(float dt) {
         levelEditorStuff.update(dt);
+        this.camera.adjustProjection();
+
+        for (GameObject go : this.gameObjects) {
+            go.update(dt);
+        }
 //        DebugDraw.addCircle(new Vector2f(x, y), 64, new Vector3f(0, 1, 0), 1);
 //        x += 50f * dt;
 //        y += 50f * dt;
@@ -83,11 +82,6 @@ public class LevelEditorScene extends Scene {
 //        float y = ((float) Math.cos(t) * 200.0f) + 400;
 //        t += 0.05f;
 //        DebugDraw.addLine2D(new Vector2f(600, 400), new Vector2f(x, y), new Vector3f(1, 0, 0), 10);
-
-        for (GameObject go : this.gameObjects) {
-            go.update(dt);
-        }
-
     }
 
     @Override

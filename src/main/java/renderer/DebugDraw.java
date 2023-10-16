@@ -66,7 +66,7 @@ public class DebugDraw {
     }
 
     public static void draw() {
-        if (lines.size() <= 0) return;
+        if (lines.isEmpty()) return;
         int index = 0;
         for (Line2D line : lines) {
             for (int i = 0; i < 2; i++) {
