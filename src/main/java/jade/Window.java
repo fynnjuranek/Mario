@@ -2,14 +2,17 @@ package jade;
 
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
-import renderer.DebugDraw;
+import renderer.*;
 import scenes.LevelEditorScene;
 import scenes.LevelScene;
 import scenes.Scene;
+import util.AssetPool;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
@@ -22,7 +25,8 @@ public class Window {
     private boolean fadeToBlack = false;
     private ImGuiLayer imGuiLayer;
     private static Scene currentScene;
-
+    private Framebuffer framebuffer;
+    private PickingTexture pickingTexture;
 
     private Window() {
        this.width = 1920;
@@ -86,9 +90,10 @@ public class Window {
 
         // Configure GLFW
         glfwDefaultWindowHints();
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-        glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+        //glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
+
 
         // Create the window
         glfwWindow = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL);
@@ -113,6 +118,7 @@ public class Window {
         glfwSwapInterval(1);
 
         // Make the window visible
+        glfwMaximizeWindow(glfwWindow);
         glfwShowWindow(glfwWindow);
 
         // This is really important, it will break if not in program
@@ -124,6 +130,11 @@ public class Window {
         this.imGuiLayer = new ImGuiLayer(glfwWindow);
         this.imGuiLayer.initImGui();
 
+        // These two need to be the same size!
+        this.framebuffer = new Framebuffer(1920, 1080);
+        this.pickingTexture = new PickingTexture(1920, 1080);
+        glViewport(0, 0, 1920, 1080);
+
         Window.changeScene(0);
 
     }
@@ -133,19 +144,40 @@ public class Window {
         float endTime;
         float dt = -1.0f;
 
+        Shader defaultShader = AssetPool.getShader("assets/shaders/default.glsl");
+        Shader pickingShader = AssetPool.getShader("assets/shaders/pickingShader.glsl");
         while (!glfwWindowShouldClose(glfwWindow)) {
             // Poll events
             glfwPollEvents();
 
+            // Render pass 1. Render to picking texture
+            glDisable(GL_BLEND);
+            pickingTexture.enableWriting();
+
+            glViewport(0, 0, 1920, 1080);
+            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            Renderer.bindShader(pickingShader);
+            currentScene.render();
+
+            pickingTexture.disableWriting();
+            glEnable(GL_BLEND);
+
+            // Render pass 2. Render actual game
             DebugDraw.beginFrame();
 
+            this.framebuffer.bind();
             glClearColor(r, g, b, a);
             glClear(GL_COLOR_BUFFER_BIT);
+
 
             if (dt >= 0) {
                 DebugDraw.draw();
                 currentScene.update(dt);
+                currentScene.render();
             }
+            this.framebuffer.unbind();
 
             this.imGuiLayer.update(dt, currentScene);
             glfwSwapBuffers(glfwWindow);
@@ -156,6 +188,14 @@ public class Window {
         }
 
         currentScene.saveExit();
+    }
+
+    public static Framebuffer getFramebuffer() {
+        return get().framebuffer;
+    }
+
+    public static float getTargetAspectRatio() {
+        return 16.0f / 9.0f;
     }
 
     public static int getWidth() {

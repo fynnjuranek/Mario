@@ -35,7 +35,9 @@ public class LevelEditorScene extends Scene {
         sprites = AssetPool.getSpriteSheet("assets/images/spritesheets/decorationsAndBlocks.png");
 
         if (levelLoaded) {
-            this.activeGameObject = gameObjects.get(0);
+            if (!gameObjects.isEmpty()) {
+                this.activeGameObject = gameObjects.get(0);
+            }
             return;
         }
 
@@ -65,9 +67,17 @@ public class LevelEditorScene extends Scene {
 
 
 //    float t = 0.0f;
+    float angle = 0.0f;
+    float x = 0.0f;
+    float y = 0.0f;
     @Override
     public void update(float dt) {
         levelEditorStuff.update(dt);
+//        DebugDraw.addCircle(new Vector2f(x, y), 64, new Vector3f(0, 1, 0), 1);
+//        x += 50f * dt;
+//        y += 50f * dt;
+//        DebugDraw.addBox2D(new Vector2f(400, 200), new Vector2f(64, 32), angle, new Vector3f(0, 0, 1), 1);
+//        angle += 30.0f * dt;
 //        To render spinning line
 //        float x = ((float) Math.sin(t) * 200.0f) + 600;
 //        float y = ((float) Math.cos(t) * 200.0f) + 400;
@@ -77,6 +87,11 @@ public class LevelEditorScene extends Scene {
         for (GameObject go : this.gameObjects) {
             go.update(dt);
         }
+
+    }
+
+    @Override
+    public void render() {
         this.renderer.render();
     }
 
@@ -95,8 +110,8 @@ public class LevelEditorScene extends Scene {
         float windowX2 = windowPos.x + windowSize.x;
         for (int i = 0; i < sprites.size(); i++) {
             Sprite sprite = sprites.getSprite(i);
-            float spriteWidth = sprite.getWidth() * 4;
-            float spriteHeight = sprite.getHeight() * 4;
+            float spriteWidth = sprite.getWidth() * 2;
+            float spriteHeight = sprite.getHeight() * 2;
             int id = sprite.getTexId();
             Vector2f[] texCoords = sprite.getTexCoords();
 
@@ -129,6 +144,16 @@ public class LevelEditorScene extends Scene {
                         16, 16, 81, 0));
 
         AssetPool.getTexture("assets/images/blendImage2.png");
+
+        // To fix problem with black textures when framebuffer is active!
+        for (GameObject go : gameObjects) {
+            if (go.getComponent(SpriteRenderer.class) != null) {
+                SpriteRenderer spr = go.getComponent(SpriteRenderer.class);
+                if (spr.getTexture() != null) {
+                    spr.setTexture(AssetPool.getTexture(spr.getTexture().getFilepath()));
+                }
+            }
+        }
     }
 
 }

@@ -1,5 +1,6 @@
 package renderer;
 
+import jade.Transform;
 import org.lwjgl.BufferUtils;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,29 @@ import static org.lwjgl.stb.STBImage.*;
 
 public class Texture {
     private String filepath;
-    private int texID;
+    private transient int texID;
     private int width, height;
+
+    public Texture() {
+        texID = -1;
+        width = -1;
+        height = -1;
+    }
+
+    public Texture(int width, int height) {
+        this.filepath = "Generated";
+
+        // Generate texture on GPU
+        texID = glGenTextures();
+        glBindTexture(GL_TEXTURE_2D, texID);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0,
+                GL_RGB, GL_UNSIGNED_BYTE, 0);
+    }
+
 
     public void init(String filepath) {
         this.filepath = filepath;
@@ -57,6 +79,7 @@ public class Texture {
         stbi_image_free(image); // to avoid memory leak
     }
 
+
     public void bind() {
         glBindTexture(GL_TEXTURE_2D, texID);
     }
@@ -75,5 +98,18 @@ public class Texture {
 
     public int getTexID() {
         return texID;
+    }
+
+    public String getFilepath() {
+        return this.filepath;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) return false;
+        if (!(o instanceof Texture)) return false;
+        Texture oTex = (Texture) o;
+        return oTex.getWidth() == this.width && oTex.getHeight() == this.height && oTex.getTexID() == this.texID &&
+                oTex.getFilepath().equals(this.filepath);
     }
 }

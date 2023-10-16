@@ -127,6 +127,7 @@ public class RenderBatch implements Comparable<RenderBatch> {
         }
 
         // Use shader
+        Shader shader = Renderer.getBoundShader();
         shader.use();
         shader.uploadMat4f("uProjection", Window.getScene().camera().getProjectionMatrix());
         shader.uploadMat4f("uView", Window.getScene().camera().getViewMatrix());
@@ -169,7 +170,7 @@ public class RenderBatch implements Comparable<RenderBatch> {
         int texID = 0;
         if (sprite.getTexture() != null) {
             for (int i = 0; i < textures.size(); i++) {
-                if (textures.get(i) == sprite.getTexture()) {
+                if (textures.get(i).equals(sprite.getTexture())) {
                     texID = i + 1;
                     break;
                 }
