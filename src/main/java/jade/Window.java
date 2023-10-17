@@ -194,6 +194,7 @@ public class Window {
         currentScene.saveExit();
     }
 
+
     public static Framebuffer getFramebuffer() {
         return get().framebuffer;
     }
@@ -207,7 +208,6 @@ public class Window {
     }
 
     public static int getHeight() {
-
         return get().height;
     }
 
@@ -217,5 +217,9 @@ public class Window {
 
     public static void setHeight(int newHeight) {
         get().height = newHeight;
+    }
+
+    public static ImGuiLayer getImGuiLayer() {
+        return get().imGuiLayer;
     }
 }

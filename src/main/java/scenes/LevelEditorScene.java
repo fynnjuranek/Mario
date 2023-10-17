@@ -21,19 +21,25 @@ public class LevelEditorScene extends Scene {
     private float spriteFlipTimeLeft = 0.0f;
     private SpriteSheet sprites;
 
-    GameObject levelEditorStuff = new GameObject("LevelEditor", new Transform(new Vector2f()), 0);
+    GameObject levelEditorStuff = this.createGameObject("LevelEditor");
     public LevelEditorScene() {
 
     }
 
     @Override
     public void init() {
+        loadResources();
+        sprites = AssetPool.getSpriteSheet("assets/images/spritesheets/decorationsAndBlocks.png");
+        SpriteSheet gizmos = AssetPool.getSpriteSheet("assets/images/gizmos.png");
+
         this.camera = new Camera(new Vector2f(-250, 0));
         levelEditorStuff.addComponent(new MouseControls());
         levelEditorStuff.addComponent(new GridLines());
         levelEditorStuff.addComponent(new EditorCamera(this.camera));
-        loadResources();
-        sprites = AssetPool.getSpriteSheet("assets/images/spritesheets/decorationsAndBlocks.png");
+        // TODO: Add legend to show what key is for what function (e and r for scale / movement)
+        levelEditorStuff.addComponent(new GizmoSystem(gizmos));
+
+        levelEditorStuff.start();
 
 //        To test alpha blending
 //        obj1 = new GameObject("Object 1",
@@ -91,6 +97,10 @@ public class LevelEditorScene extends Scene {
 
     @Override
     public void imGui() {
+        ImGui.begin("Level Editor Stuff");
+        levelEditorStuff.imGui();
+        ImGui.end();
+
         ImGui.begin("Test Window");
         ImGui.text("Some random text");
 
@@ -138,6 +148,8 @@ public class LevelEditorScene extends Scene {
                         16, 16, 81, 0));
 
         AssetPool.getTexture("assets/images/blendImage2.png");
+        AssetPool.addSpriteSheet("assets/images/gizmos.png",
+                new SpriteSheet(AssetPool.getTexture("assets/images/gizmos.png"), 24, 48, 3, 0));
 
         // To fix problem with black textures when framebuffer is active!
         for (GameObject go : gameObjects) {

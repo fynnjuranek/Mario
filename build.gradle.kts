@@ -7,6 +7,9 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    flatDir {
+        dirs("libs")
+    }
 
 }
 
@@ -25,13 +28,14 @@ val lwjglNatives = "natives-windows"
 var imguiVersion = "1.86.11"
 
 dependencies {
+    // Box2D-Physics-Engine
+    implementation(name,"jbox2d-library")
 
     // IMGUI stuff
     implementation("io.github.spair:imgui-java-app:${imguiVersion}")
     implementation("io.github.spair:imgui-java-binding:$imguiVersion")
     implementation("io.github.spair:imgui-java-lwjgl3:$imguiVersion")
     implementation("io.github.spair:imgui-java-natives-windows:$imguiVersion")
-
 
     // LWJGL stuff
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))

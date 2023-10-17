@@ -10,11 +10,11 @@ public class Sprite {
 
 
     private Vector2f[] texCoords = {
-                new Vector2f(1, 1),
-                new Vector2f(1, 0),
-                new Vector2f(0, 0),
-                new Vector2f(0, 1),
-        };
+            new Vector2f(1, 1),
+            new Vector2f(1, 0),
+            new Vector2f(0, 0),
+            new Vector2f(0, 1),
+    };
 
 //    public Sprite(Texture texture) {
 //        this.texture = texture;
@@ -39,6 +39,7 @@ public class Sprite {
     public Vector2f[] getTexCoords() {
         return this.texCoords;
     }
+
     public void setTexture(Texture texture) {
         this.texture = texture;
     }
