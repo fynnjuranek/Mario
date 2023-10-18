@@ -1,55 +1,50 @@
 package jade;
 
+import observers.EventSystem;
+import observers.Observer;
+import observers.events.Event;
+import observers.events.EventType;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import renderer.*;
-import scenes.LevelEditorScene;
-import scenes.LevelScene;
+import scenes.LevelEditorSceneInitializer;
 import scenes.Scene;
+import scenes.SceneInitializer;
 import util.AssetPool;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class Window {
+public class Window implements Observer {
     private int width, height;
     private String title;
     private static Window window = null;
     private long glfwWindow;
-    public float r, g, b, a;
     private boolean fadeToBlack = false;
     private ImGuiLayer imGuiLayer;
     private static Scene currentScene;
     private Framebuffer framebuffer;
     private PickingTexture pickingTexture;
+    private boolean runtimePlaying = false;
+
 
     private Window() {
        this.width = 1920;
        this.height = 1080;
-       this.title = "Mario";
-       this.r = 1;
-       this.g = 1;
-       this.b = 1;
-       this.a = 1;
+       this.title = "Jade";
+       EventSystem.addObserver(this);
     }
 
-    public static void changeScene(int newScene) {
-        switch (newScene) {
-            case 0:
-                currentScene = new LevelEditorScene();
-                break;
-            case 1:
-                currentScene = new LevelScene();
-                break;
-            default:
-                assert false : "Unknown scene '" + newScene + "'";
-                break;
+    public static void changeScene(SceneInitializer sceneInitializer) {
+        if (currentScene != null) {
+            currentScene.destroy();
         }
+
+        getImGuiLayer().getPropertiesWindow().setActiveGameObject(null);
+        currentScene = new Scene(sceneInitializer);
         currentScene.load();
         currentScene.init();
         currentScene.start();
@@ -137,7 +132,7 @@ public class Window {
         this.imGuiLayer = new ImGuiLayer(glfwWindow, pickingTexture);
         this.imGuiLayer.initImGui();
 
-        Window.changeScene(0);
+        Window.changeScene(new LevelEditorSceneInitializer());
 
     }
 
@@ -170,14 +165,18 @@ public class Window {
             DebugDraw.beginFrame();
 
             this.framebuffer.bind();
-            glClearColor(r, g, b, a);
+            glClearColor(1, 1, 1, 1);
             glClear(GL_COLOR_BUFFER_BIT);
 
 
             if (dt >= 0) {
                 DebugDraw.draw();
                 Renderer.bindShader(defaultShader);
-                currentScene.update(dt);
+                if (runtimePlaying) {
+                    currentScene.update(dt);
+                } else {
+                    currentScene.editorUpdate(dt);
+                }
                 currentScene.render();
             }
             this.framebuffer.unbind();
@@ -190,10 +189,24 @@ public class Window {
             dt = endTime - beginTime;
             beginTime = endTime;
         }
-
-        currentScene.saveExit();
     }
 
+    @Override
+    public void onNotify(GameObject object, Event event) {
+        switch (event.type) {
+            case GameEngineStartPlay -> {
+                this.runtimePlaying = true;
+                currentScene.save();
+                Window.changeScene(new LevelEditorSceneInitializer());
+            }
+            case GameEngineStopPlay -> {
+                this.runtimePlaying = false;
+                Window.changeScene(new LevelEditorSceneInitializer());
+            }
+            case LoadLevel -> Window.changeScene(new LevelEditorSceneInitializer());
+            case SaveLevel -> currentScene.save();
+        }
+    }
 
     public static Framebuffer getFramebuffer() {
         return get().framebuffer;
