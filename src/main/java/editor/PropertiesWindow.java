@@ -10,38 +10,25 @@ import physics2d.components.RigidBody2D;
 import renderer.PickingTexture;
 import scenes.Scene;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 
 public class PropertiesWindow {
+    private List<GameObject> activeGameObjects;
 
     private GameObject activeGameObject = null;
     private PickingTexture pickingTexture;
 
-    private float debounce = 0.2f;
-
     public PropertiesWindow(PickingTexture pickingTexture) {
+        this.activeGameObjects = new ArrayList<>();
         this.pickingTexture = pickingTexture;
     }
 
-    public void update(float dt, Scene currentScene) {
-        debounce -= dt;
-
-        if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && debounce < 0) {
-            int x = (int) MouseListener.getScreenX();
-            int y = (int) MouseListener.getScreenY();
-            int gameObjectId = pickingTexture.readPixel(x, y);
-            GameObject pickedObj = currentScene.getGameObject(gameObjectId);
-            if (pickedObj != null && pickedObj.getComponent(NonPickable.class) == null) {
-                activeGameObject = pickedObj;
-            } else if (pickedObj == null && !MouseListener.isDragging()) {
-                activeGameObject = null;
-            }
-            this.debounce = 0.2f;
-        }
-    }
-
     public void imGui() {
-        if (activeGameObject != null) {
+        if (activeGameObjects.size() == 1 && activeGameObjects.get(0) != null) {
+            activeGameObject = activeGameObjects.get(0);
             ImGui.begin("Properties");
 
             if (ImGui.beginPopupContextWindow("ComponentAdder")) {
@@ -74,10 +61,28 @@ public class PropertiesWindow {
     }
 
     public GameObject getActiveGameObject() {
-        return this.activeGameObject;
+        return this.activeGameObjects.size() == 1 ? this.activeGameObjects.get(0) : null;
     }
 
-    public void setActiveGameObject(GameObject go) {
-        this.activeGameObject = go;
+    public void clearSelected() {
+        this.activeGameObjects.clear();
     }
+    public List<GameObject> getActiveGameObjects() {
+        return this.activeGameObjects;
+    }
+    public void setActiveGameObject(GameObject go) {
+        if (go != null) {
+            clearSelected();
+            this.activeGameObjects.add(go);
+        }
+    }
+
+    public void addActiveGameObject(GameObject go) {
+        this.activeGameObjects.add(go);
+    }
+
+    public PickingTexture getPickingTexture() {
+        return this.pickingTexture;
+    }
+
 }

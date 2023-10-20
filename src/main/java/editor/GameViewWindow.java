@@ -30,21 +30,32 @@ public class GameViewWindow {
         ImGui.endMenuBar();
 
 
-
-        ImGui.setCursorPos(ImGui.getCursorPosX(), ImGui.getCursorPosY());
+        // TODO: Mouse is still a little bit on y-axis off
+        //ImGui.setCursorPos(ImGui.getCursorPosX(), ImGui.getCursorPosY());
         ImVec2 windowSize = getLargestSizeForViewport();
-        ImVec2 windowPos = getCenteredPositionForViewport(windowSize);
-        ImGui.setCursorPos(windowPos.x, windowPos.y);
+        //ImVec2 windowPos = getCenteredPositionForViewport(windowSize);
+        //ImGui.setCursorScreenPos(windowPos.x, windowPos.y);
+        //ImGui.setCursorPos(windowPos.x, windowPos.y);
 
-        leftX = windowPos.x + 10;
-        bottomY = windowPos.y;
-        rightX = windowPos.x + windowSize.x + 10;
-        topY = windowPos.y + windowSize.y;
+        ImVec2 topLeft = new ImVec2();
+        ImGui.getCursorScreenPos(topLeft);
+//        topLeft.x -= ImGui.getScrollX();
+//        topLeft.y -= ImGui.getScrollY();
+        leftX = topLeft.x;
+        bottomY = topLeft.y;
+        rightX = topLeft.x + windowSize.x;
+        topY = topLeft.y + windowSize.y;
+
+//        leftX = windowPos.x + 10;
+//        rightX = windowPos.x + windowSize.x + 10;
+//        bottomY = windowPos.y;
+//        topY = windowPos.y + windowSize.y;
 
         int textureId = Window.getFramebuffer().getTextureId();
         ImGui.image(textureId, windowSize.x, windowSize.y, 0, 1, 1, 0);
 
-        MouseListener.setGameViewportPos(new Vector2f(windowPos.x + 10, windowPos.y));
+        // TODO: Remove -20 and fix the problem
+        MouseListener.setGameViewportPos(new Vector2f(topLeft.x, topLeft.y - 20));
         MouseListener.setGameViewportSize(new Vector2f(windowSize.x, windowSize.y));
         ImGui.end();
     }

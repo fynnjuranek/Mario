@@ -25,6 +25,10 @@ public class ImGuiLayer {
     // LWJGL3 renderer (SHOULD be initialized)
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
+    // Mouse cursors provided by GLFW
+    private final long[] mouseCursors = new long[ImGuiMouseCursor.COUNT];
+
+
     private GameViewWindow gameViewWindow;
     private PropertiesWindow propertiesWindow;
     private MenuBar menuBar;
@@ -36,6 +40,10 @@ public class ImGuiLayer {
         this.propertiesWindow = new PropertiesWindow(pickingTexture);
         this.menuBar = new MenuBar();
         this.sceneHierarchyWindow = new SceneHierarchyWindow();
+    }
+
+    public GameViewWindow getGameViewWindow() {
+        return this.gameViewWindow;
     }
     // Initialize Dear ImGui.
     // Initialize Dear ImGui.
@@ -54,6 +62,20 @@ public class ImGuiLayer {
         io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
 //        io.setBackendFlags(ImGuiBackendFlags.HasMouseCursors); // Mouse cursors to display while resizing windows etc.
         io.setBackendPlatformName("imgui_java_impl_glfw");
+
+
+
+        // ------------------------------------------------------------
+        // Mouse cursors mapping
+        mouseCursors[ImGuiMouseCursor.Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        mouseCursors[ImGuiMouseCursor.TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+        mouseCursors[ImGuiMouseCursor.ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        mouseCursors[ImGuiMouseCursor.ResizeNS] = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
+        mouseCursors[ImGuiMouseCursor.ResizeEW] = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
+        mouseCursors[ImGuiMouseCursor.ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        mouseCursors[ImGuiMouseCursor.ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        mouseCursors[ImGuiMouseCursor.Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+        mouseCursors[ImGuiMouseCursor.NotAllowed] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
 
 
         // ------------------------------------------------------------
@@ -98,7 +120,7 @@ public class ImGuiLayer {
             }
 
             // Forward it to our mouselistener button callback to allow clicking textures into our scene
-            if (!io.getWantCaptureMouse() || gameViewWindow.getWantCaptureMouse()) {
+            if (gameViewWindow.getWantCaptureMouse()) {
                 MouseListener.mouseButtonCallback(w, button, action, mods);
             }
         });
@@ -106,7 +128,11 @@ public class ImGuiLayer {
         glfwSetScrollCallback(glfwWindow, (w, xOffset, yOffset) -> {
             io.setMouseWheelH(io.getMouseWheelH() + (float) xOffset);
             io.setMouseWheel(io.getMouseWheel() + (float) yOffset);
-            MouseListener.mouseScrollCallback(w, xOffset, yOffset);
+            if (gameViewWindow.getWantCaptureMouse()) {
+                MouseListener.mouseScrollCallback(w, xOffset, yOffset);
+            } else {
+                MouseListener.clear();
+            }
         });
 
         io.setSetClipboardTextFn(new ImStrConsumer() {
@@ -165,7 +191,6 @@ public class ImGuiLayer {
         currentScene.imGui();
 //        ImGui.showDemoWindow();
         gameViewWindow.imGui();
-        propertiesWindow.update(dt, currentScene);
         propertiesWindow.imGui();
         sceneHierarchyWindow.imGui();
 
@@ -174,6 +199,26 @@ public class ImGuiLayer {
 
 
     private void startFrame(final float deltaTime) {
+        // Get window properties and mouse position
+        float[] winWidth = {Window.getWidth()};
+        float[] winHeight = {Window.getHeight()};
+        double[] mousePosX = {0};
+        double[] mousePosY = {0};
+
+        glfwGetCursorPos(glfwWindow, mousePosX, mousePosY);
+
+        // We SHOULD call those methods to update Dear ImGui state for the current frame
+        final ImGuiIO io = ImGui.getIO();
+        io.setDisplaySize(winWidth[0], winHeight[0]);
+        io.setDisplayFramebufferScale(1f, 1f);
+        io.setMousePos((float) mousePosX[0], (float) mousePosY[0]);
+        io.setDeltaTime(deltaTime);
+
+        // Update the mouse cursor
+        final int imguiCursor = ImGui.getMouseCursor();
+        glfwSetCursor(glfwWindow, mouseCursors[imguiCursor]);
+        glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
         imGuiGlfw.newFrame();
         ImGui.newFrame();
     }
@@ -232,4 +277,6 @@ public class ImGuiLayer {
     public PropertiesWindow getPropertiesWindow() {
         return this.propertiesWindow;
     }
+
+
 }

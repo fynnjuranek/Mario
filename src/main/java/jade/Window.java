@@ -6,6 +6,10 @@ import observers.events.Event;
 import observers.events.EventType;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.openal.AL;
+import org.lwjgl.openal.ALC;
+import org.lwjgl.openal.ALCCapabilities;
+import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.opengl.GL;
 import renderer.*;
 import scenes.LevelEditorSceneInitializer;
@@ -15,6 +19,7 @@ import util.AssetPool;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.openal.ALC10.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
@@ -30,6 +35,8 @@ public class Window implements Observer {
     private PickingTexture pickingTexture;
     private boolean runtimePlaying = false;
 
+    private long audioContext;
+    private long audioDevice;
 
     private Window() {
        this.width = 1920;
@@ -67,6 +74,10 @@ public class Window implements Observer {
         init();
         loop();
 
+        // Destroy the audio context
+        alcDestroyContext(audioContext);
+        alcCloseDevice(audioDevice);
+
         // Free the memory
         glfwFreeCallbacks(glfwWindow);
         glfwDestroyWindow(glfwWindow);
@@ -85,9 +96,9 @@ public class Window implements Observer {
 
         // Configure GLFW
         glfwDefaultWindowHints();
-        glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-        //glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
+        glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 
 
         // Create the window
@@ -113,8 +124,23 @@ public class Window implements Observer {
         glfwSwapInterval(1);
 
         // Make the window visible
-        glfwMaximizeWindow(glfwWindow);
+        //glfwMaximizeWindow(glfwWindow);
         glfwShowWindow(glfwWindow);
+
+        // Initialize the audio device
+        String defaultDeviceName = alcGetString(0, ALC_DEFAULT_DEVICE_SPECIFIER);
+        audioDevice = alcOpenDevice(defaultDeviceName);
+
+        int[] attributes = {0};
+        audioContext = alcCreateContext(audioDevice, attributes);
+        alcMakeContextCurrent(audioContext);
+
+        ALCCapabilities alcCapabilities = ALC.createCapabilities(audioDevice);
+        ALCapabilities alCapabilities = AL.createCapabilities(alcCapabilities);
+
+        if (!alCapabilities.OpenAL10) {
+            assert false : "Audio library not supported";
+        }
 
         // This is really important, it will break if not in program
         GL.createCapabilities();
@@ -125,9 +151,9 @@ public class Window implements Observer {
 
 
         // These two need to be the same size!
-        this.framebuffer = new Framebuffer(1920, 1080);
-        this.pickingTexture = new PickingTexture(1920, 1080);
-        glViewport(0, 0, 1920, 1080);
+        this.framebuffer = new Framebuffer(3840, 2160);
+        this.pickingTexture = new PickingTexture(3840, 2160);
+        glViewport(0, 0, 3840, 2160);
 
         this.imGuiLayer = new ImGuiLayer(glfwWindow, pickingTexture);
         this.imGuiLayer.initImGui();
@@ -151,7 +177,7 @@ public class Window implements Observer {
             glDisable(GL_BLEND);
             pickingTexture.enableWriting();
 
-            glViewport(0, 0, 1920, 1080);
+            glViewport(0, 0, 3840, 2160);
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -182,8 +208,10 @@ public class Window implements Observer {
             this.framebuffer.unbind();
 
             this.imGuiLayer.update(dt, currentScene);
-            glfwSwapBuffers(glfwWindow);
+
             MouseListener.endFrame();
+            glfwSwapBuffers(glfwWindow);
+            //MouseListener.endFrame();
 
             endTime = (float) glfwGetTime();
             dt = endTime - beginTime;
