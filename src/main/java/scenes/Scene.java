@@ -128,6 +128,7 @@ public class Scene {
                 .setPrettyPrinting()
                 .registerTypeAdapter(Component.class, new ComponentDeserializer())
                 .registerTypeAdapter(GameObject.class, new GameObjectDeserializer())
+                .enableComplexMapKeySerialization()
                 .create();
 
         try {
@@ -146,7 +147,12 @@ public class Scene {
     }
 
     public void load() {
-        Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(Component.class, new ComponentDeserializer()).registerTypeAdapter(GameObject.class, new GameObjectDeserializer()).create();
+        Gson gson = new GsonBuilder()
+                .setPrettyPrinting()
+                .registerTypeAdapter(Component.class, new ComponentDeserializer())
+                .registerTypeAdapter(GameObject.class, new GameObjectDeserializer())
+                .enableComplexMapKeySerialization()
+                .create();
         String inFile = "";
         try {
             inFile = new String(Files.readAllBytes(Paths.get("level.txt")));
@@ -180,5 +186,9 @@ public class Scene {
         for (GameObject go : gameObjects) {
             go.destroy();
         }
+    }
+
+    public Physics2D getPhysics() {
+        return this.physics2D;
     }
 }

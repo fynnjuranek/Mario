@@ -44,6 +44,10 @@ public class StateMachine extends Component {
         this.states.add(state);
     }
 
+    public void addState(String from, String to, String onTrigger) {
+        this.stateTransfers.put(new StateTrigger(from, onTrigger), to);
+    }
+
     public void addStateTrigger(String from, String to, String onTrigger) {
         this.stateTransfers.put(new StateTrigger(from, onTrigger), to);
     }
@@ -52,15 +56,7 @@ public class StateMachine extends Component {
         for (StateTrigger state : stateTransfers.keySet()) {
             if (state.state.equals(currentState.title) && state.trigger.equals(trigger)) {
                 if (stateTransfers.get(state) != null) {
-                    int newStateIndex = -1;
-                    int index = 0;
-                    for (AnimationState s : states) {
-                        if (s.title.equals(stateTransfers.get(state))) {
-                            newStateIndex = index;
-                            break;
-                        }
-                        index++;
-                    }
+                    int newStateIndex = stateIndexOf(stateTransfers.get(state));
                     if (newStateIndex > -1) {
                         currentState = states.get(newStateIndex);
                     }
@@ -69,6 +65,17 @@ public class StateMachine extends Component {
             }
         }
         System.out.println("Unable to find trigger'" + trigger + "'");
+    }
+
+    private int stateIndexOf(String stateTitle) {
+        int index = 0;
+        for (AnimationState state : states) {
+            if (state.title.equals(stateTitle)) {
+                return index;
+            }
+            index++;
+        }
+        return -1;
     }
 
     public void setDefaultState(String animationTitle) {
