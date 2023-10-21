@@ -196,7 +196,6 @@ public class Window implements Observer {
 
 
             if (dt >= 0) {
-                DebugDraw.draw();
                 Renderer.bindShader(defaultShader);
                 if (runtimePlaying) {
                     currentScene.update(dt);
@@ -204,11 +203,13 @@ public class Window implements Observer {
                     currentScene.editorUpdate(dt);
                 }
                 currentScene.render();
+                DebugDraw.draw();
             }
             this.framebuffer.unbind();
 
             this.imGuiLayer.update(dt, currentScene);
 
+            KeyListener.endFrame();
             MouseListener.endFrame();
             glfwSwapBuffers(glfwWindow);
             //MouseListener.endFrame();
@@ -245,11 +246,13 @@ public class Window implements Observer {
     }
 
     public static int getWidth() {
-        return get().width;
+        return 3840;
+        //return get().width;
     }
 
     public static int getHeight() {
-        return get().height;
+        return 2160;
+        //return get().height;
     }
 
     public static void setWidth(int newWidth) {

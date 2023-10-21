@@ -56,20 +56,19 @@ public class MouseListener {
         return MouseListener.instance;
     }
 
-    public static void mousePosCallback(long window, double xpos, double ypos) {
+    public static void mousePosCallback(long window, double xPos, double yPos) {
         if (!Window.getImGuiLayer().getGameViewWindow().getWantCaptureMouse()) {
             clear();
         }
         if (get().mouseButtonDown > 0) {
             get().isDragging = true;
         }
-
         get().lastX = get().xPos;
         get().lastY = get().yPos;
         get().lastWorldX = get().worldX;
         get().lastWorldY = get().worldY;
-        get().xPos = xpos;
-        get().yPos = ypos;
+        get().xPos = xPos;
+        get().yPos = yPos;
     }
 
     public static void mouseButtonCallback(long window, int button, int action, int mods) {
@@ -150,8 +149,8 @@ public class MouseListener {
 
     public static Vector2f screenToWorld(Vector2f screenCoords) {
         Vector2f normalizedScreenCords = new Vector2f(
-                screenCoords.x / Window.getWidth(),
-                screenCoords.y / Window.getHeight()
+                screenCoords.x / 3840.0f, // viewportSize (editor scene size)
+                screenCoords.y / 2160.0f
         );
         normalizedScreenCords.mul(2.0f).sub(new Vector2f(1.0f, 1.0f));
         Camera camera = Window.getScene().camera();

@@ -200,8 +200,8 @@ public class ImGuiLayer {
 
     private void startFrame(final float deltaTime) {
         // Get window properties and mouse position
-        float[] winWidth = {Window.getWidth()};
-        float[] winHeight = {Window.getHeight()};
+        float[] winWidth = {1920.0f};
+        float[] winHeight = {1080.0f};
         double[] mousePosX = {0};
         double[] mousePosY = {0};
 
@@ -225,7 +225,7 @@ public class ImGuiLayer {
 
     private void endFrame() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, Window.getWidth(), Window.getHeight());
+        glViewport(0, 0, 1920, 1080);
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -255,7 +255,7 @@ public class ImGuiLayer {
         ImGui.setNextWindowSize(mainViewport.getWorkSizeX(), mainViewport.getWorkSizeY());
         ImGui.setNextWindowViewport(mainViewport.getID());
         ImGui.setNextWindowPos(0.0f, 0.0f, ImGuiCond.Always);
-        ImGui.setNextWindowSize(Window.getWidth(), Window.getHeight());
+        ImGui.setNextWindowSize(1920, 1080);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 0.0f);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);
         windowFlags |= ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse |
